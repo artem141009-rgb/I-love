@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Для Мамы</title>
+    <style>
+        :root {
+            --primary-color: #ff0000; /* Ярко-красный для печати и больших сердец */
+            --sticker-color: #ff69b4; /* Розовый для падающих стикеров 💗 */
+            --bg-color: #000000;      /* Чёрный фон */
+            --envelope-color: #ffffff; /* Белый конверт */
+            --paper-color: #ffffff;    /* Белое письмо внутри */
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: var(--bg-color);
+            overflow: hidden;
+            font-family: 'Arial', sans-serif;
+            -webkit-tap-highlight-color: transparent; /* Убирает подсветку при клике на телефоне */
+        }
+
+        /* Зона для падающих розовых стикеров */
+        #falling-hearts {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .sticker {
+            position: absolute;
+            color: var(--sticker-color);
+            font-size: 20px;
+            user-select: none;
+            animation: fall linear infinite;
+        }
+
+        @keyframes fall {
+            0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(110vh) rotate(360deg); opacity: 0.5; }
+        }
+
+        /* Контейнер для салюта из сердец */
+        #burst-hearts {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 20; /* Поверх всего */
+            pointer-events: none;
+        }
+
+        .burst-heart {
+            position: absolute;
+            color: var(--primary-color);
+            font-size: 50px; /* Большие сердца */
+            opacity: 0;
+            user-select: none;
+        }
+
+        /* Анимация взрыва */
+        @keyframes heartBurst {
+            0% { transform: translate(-50%, -50%) scale(0); opacity: 1; }
+            100% { transform: translate(var(--dx), var(--dy)) scale(1.5) rotate(var(--rm)); opacity: 0; }
+        }
+
+        /* Обертка конверта */
+        .envelope-wrapper {
+            position: relative;
+            cursor: pointer;
+            z-index: 10;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+
+        .envelope-wrapper:active {
+            transform: scale(0.85); /* Эффект нажатия */
+        }
+
+        .envelope {
+            position: relative;
+            width: 300px;
+            height: 200px;
+            background: #e0e0e0; /* Немного темнее, чтобы видеть тень клапана */
+            border-bottom-left-radius: 10px;
+            border-bottom-right-radius: 10px;
+            box-shadow: 0 15px 40px rgba(255,255,255,0.1);
+        }
+
+        /* Верхний клапан (белый) */
+        .envelope::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            z-index: 5; /* Поверх боковых, пока закрыт */
+            border-top: 110px solid var(--envelope-color);
+            border-left: 150px solid transparent;
+            border-right: 150px solid transparent;
+            transform-origin: top;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), z-index 0.1s 0.2s;
+            filter: drop-shadow(0 5px 5px rgba(0,0,0,0.1));
+        }
+
+        /* Нижняя часть конверта (белая) */
+        .envelope::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 300px;
+            height: 200px;
+            background: var(--envelope-color);
+            border-radius: 10px;
+            z-index: 3;
+        }
+
+        /* Внутренние боковинки (для объема) */
+        .envelope-front {
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-top: 100px solid transparent;
+            border-left: 150px solid #f9f9f9;
+            border-right: 150px solid #f9f9f9;
+            border-bottom: 100px solid #f9f9f9;
+            border-radius: 10px;
+            z-index: 4;
+            bottom: 0;
+        }
+
+        /* Письмо внутри */
+        .letter {
+            position: absolute;
+            bottom: 5px;
+            left: 15px;
+            width: 270px;
+            height: 190px;
+            background: var(--paper-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            box-sizing: border-box;
+            border-radius: 5px;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), z-index 0.1s 0.6s;
+            z-index: 2; /* Изначально спрятано */
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+        }
+
+        .letter h1 {
+            color: var(--primary-color);
+            font-size: 26px;
+            margin: 0;
+            line-height: 1.4;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+
+        /* Штамп-печать (Красная) */
+        .stamp {
+            position: absolute;
+            top: 85px;
+            left: 130px;
+            width: 50px;
+            height: 50px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            z-index: 6; /* Самый верхний слой */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 24px;
+            box-shadow: 0 5px 15px rgba(255, 0, 0, 0.5);
+            transition: all 0.3s ease, opacity 0.3s 0.1s;
+            user-select: none;
+            border: 2px solid #fff;
+        }
+
+        /* Анимация пульсации печати */
+        @keyframes pulse {
+            0% { box-shadow: 0 5px 15px rgba(255, 0, 0, 0.5); }
+            50% { box-shadow: 0 5px 25px rgba(255, 0, 0, 0.8); }
+            100% { box-shadow: 0 5px 15px rgba(255, 0, 0, 0.5); }
+        }
+        
+        .envelope-wrapper:not(.open) .stamp {
+            animation: pulse 1.5s infinite;
+        }
+
+        /* СОСТОЯНИЕ ОТКРЫТИЯ */
+        .envelope-wrapper.open .envelope::before {
+            transform: rotateX(180deg);
+            z-index: 1; /* Уходит назад */
+        }
+
+        .envelope-wrapper.open .letter {
+            transform: translateY(-130px);
+            z-index: 5; /* Выходит вперед */
+        }
+
+        .envelope-wrapper.open .stamp {
+            opacity: 0;
+            pointer-events: none;
+            transform: scale(0);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="falling-hearts"></div>
+
+    <div id="burst-hearts"></div>
+
+    <div class="envelope-wrapper" id="envelopeWrapper">
+        <div class="envelope">
+            <div class="envelope-front"></div>
+            <div class="letter">
+                <h1>Мама,<br>я тебя люблю! ❤️</h1>
+            </div>
+            <div class="stamp" onclick="openEnvelope()">💗</div>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. Логика падающих розовых стикеров 💗 ---
+        const fallingHeartsContainer = document.getElementById('falling-hearts');
+        const stickerIcon = '💗';
+
+        function createFallingSticker() {
+            if (document.visibilityState !== 'visible') return; // Не спавнить, если вкладка не активна
+
+            const sticker = document.createElement('div');
+            sticker.classList.add('sticker');
+            sticker.innerHTML = stickerIcon;
+            
+            // Рандомная позиция по горизонтали
+            sticker.style.left = Math.random() * 100 + 'vw';
+            
+            // Рандомный размер (от 15px до 30px)
+            const size = Math.random() * 15 + 15;
+            sticker.style.fontSize = size + 'px';
+            
+            // Рандомная скорость падения (от 4s до 8s)
+            const duration = Math.random() * 4 + 4;
+            sticker.style.animationDuration = duration + 's';
+            
+            // Небольшая задержка анимации
+            sticker.style.animationDelay = Math.random() * 2 + 's';
+
+            fallingHeartsContainer.appendChild(sticker);
+
+            // Удаляем стикер после того, как он упал
+            setTimeout(() => {
+                sticker.remove();
+            }, (duration + 2) * 1000);
+        }
+
+        // Создаем много стикеров
+        for(let i=0; i<30; i++) {
+            createFallingSticker();
+        }
+        setInterval(createFallingSticker, 200); // Постоянный дождь
+
+
+        // --- 2. Логика открытия конверта и салюта ---
+        const heartIcons = ['❤️', '💖', '💝', '💓'];
+
+        function openEnvelope() {
+            const wrapper = document.getElementById('envelopeWrapper');
+            if (wrapper.classList.contains('open')) return; // Если уже открыт, ничего не делать
+
+            wrapper.classList.add('open');
+
+            // Запускаем салют из сердец
+            createHeartBurst();
+        }
+
+        function createHeartBurst() {
+            const container = document.getElementById('burst-hearts');
+            const burstCount = 25; // Количество больших сердец в салюте
+
+            for (let i = 0; i < burstCount; i++) {
+                const heart = document.createElement('div');
+                heart.classList.add('burst-heart');
+                
+                // Рандомное красное сердце
+                heart.innerHTML = heartIcons[Math.floor(Math.random() * heartIcons.length)];
+                
+                // Центрируем в месте конверта
+                heart.style.left = '50%';
+                heart.style.top = '50%';
+                
+                // Генерируем случайное направление разлета
+                const angle = Math.random() * Math.PI * 2; // Угол в радианах
+                const velocity = Math.random() * 250 + 150; // Скорость разлета
+                const x = Math.cos(angle) * velocity;
+                const y = Math.sin(angle) * velocity;
+                const rotate = Math.random() * 720 - 360; // Рандомное вращение
+
+                // Передаем переменные в CSS
+                heart.style.setProperty('--dx', `${x}px`);
+                heart.style.setProperty('--dy', `${y}px`);
+                heart.style.setProperty('--rm', `${rotate}deg`);
+                
+                // Рандомная задержка для эффекта последовательности
+                heart.style.animation = `heartBurst 1.5s cubic-bezier(0.1, 0.8, 0.3, 1) ${Math.random() * 0.3}s forwards`;
+
+                container.appendChild(heart);
+
+                // Удаляем сердце после анимации
+                setTimeout(() => {
+                    heart.remove();
+                }, 1800);
+            }
+        }
+    </script>
+</body>
+</html>
